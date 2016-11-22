@@ -103,6 +103,12 @@ def invoke(src, alt_event=None, verbose=False):
     path_to_config_file = os.path.join(src, 'config.yaml')
     cfg = read(path_to_config_file, loader=yaml.load)
 
+    # Load environment variables
+    envvars = cfg.get('environment')
+    if envvars:
+        for k, v in envvars.items():
+            os.environ[k] = str(v)
+
     # Load and parse event file.
     if alt_event:
         path_to_event_file = os.path.join(src, alt_event)
@@ -121,6 +127,11 @@ def invoke(src, alt_event=None, verbose=False):
     start = time.time()
     results = fn(event, None)
     end = time.time()
+
+    # Unset environment variables
+    if envvars:
+        for key in envvars.keys():
+            os.environ.pop(key)
 
     print("{0}".format(results))
     if verbose:
@@ -301,6 +312,7 @@ def create_function(cfg, path_to_zip_file):
         Handler=cfg.get('handler'),
         Code={'ZipFile': byte_stream},
         Description=cfg.get('description'),
+        Environment={'Variables': cfg.get('environment')},
         Timeout=cfg.get('timeout', 15),
         MemorySize=cfg.get('memory_size', 512),
         Publish=True
@@ -332,6 +344,7 @@ def update_function(cfg, path_to_zip_file):
         Role=role,
         Handler=cfg.get('handler'),
         Description=cfg.get('description'),
+        Environment={'Variables': cfg.get('environment')},
         Timeout=cfg.get('timeout', 15),
         MemorySize=cfg.get('memory_size', 512)
     )
