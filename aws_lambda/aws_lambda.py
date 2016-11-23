@@ -128,11 +128,6 @@ def invoke(src, alt_event=None, verbose=False):
     results = fn(event, None)
     end = time.time()
 
-    # Unset environment variables
-    if envvars:
-        for key in envvars.keys():
-            os.environ.pop(key)
-
     print("{0}".format(results))
     if verbose:
         print("\nexecution time: {:.8f}s\nfunction execution "
